@@ -4,49 +4,42 @@ import os
 from flask import Flask
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
-from google import genai  
+from google import genai
 
-# Kalitlar
-TELEGRAM_TOKEN = '8672369792:AAFO80iJTSZZBBinKIoy0E-Ll4_A-vDn6I4'
-GEMINI_API_KEY = 'AIzaSyCYgatMgekG4EQdtpbeBvq2TiF-_7EUb7c'
+# Kalitlarni Render sozlamalaridan xavfsiz olish
+TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
-# Yangi tizim bo'yicha Gemini'ni sozlash
+# Gemini-ni yangi model bilan sozlash (2026-yil standarti)
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-# Loglar
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-# Veb-server (Render uchun)
 app = Flask('')
-
 @app.route('/')
-def home():
-    return "Bot ishlayapti!"
+def home(): return "Bot uyg'oq!"
 
 def run_flask():
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
 
-# Bot xabarlarni qabul qilganda ishlaydigan qism
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     try:
-        # MUHIM O'ZGARISH: Eskirgan 1.5 o'rniga eng yangi 2.5 modeli o'rnatildi!
+        # 404 xatosini oldini olish uchun eng yangi modelni tanlaymiz
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.0-flash', 
             contents=user_text,
         )
         await update.message.reply_text(response.text)
     except Exception as e:
-        xato_matni = f"GEMINI XATOSI: {str(e)}"
-        await update.message.reply_text(xato_matni)
-        logging.error(xato_matni)
+        await update.message.reply_text(f"Xatolik: {str(e)}")
 
 if __name__ == '__main__':
-    threading.Thread(target=run_flask).start()
+    threading.Thread(target=run_flask, daemon=True).start()
     
+    # Konflikt xatosini tozalash (drop_pending_updates)
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     
-    print("Bot va Veb-server ishga tushdi...", flush=True)
-    application.run_polling()
+    application.run_polling(drop_pending_updates=True)

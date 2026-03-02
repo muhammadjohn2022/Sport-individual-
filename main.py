@@ -1,21 +1,19 @@
 import logging
 import threading
+import os
 from flask import Flask
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
-import google.generativeai as genai
-import os
+from google import genai  # YANGI KUTUBXONA
 
 # Kalitlar
 TELEGRAM_TOKEN = '8672369792:AAFO80iJTSZZBBinKIoy0E-Ll4_A-vDn6I4'
 GEMINI_API_KEY = 'AIzaSyCYgatMgekG4EQdtpbeBvq2TiF-_7EUb7c'
 
-# Gemini sozlash
-genai.configure(api_key=GEMINI_API_KEY)
-# MUHIM O'ZGARISH: Model nomi 'gemini-pro' ga o'zgartirildi
-model = genai.GenerativeModel('gemini-pro') 
+# Yangi tizim bo'yicha Gemini'ni sozlash
+client = genai.Client(api_key=GEMINI_API_KEY)
 
-# Loglarni aniq chiqarish uchun sozlama
+# Loglar
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 # Veb-server (Render uchun)
@@ -33,7 +31,11 @@ def run_flask():
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     try:
-        response = model.generate_content(user_text)
+        # Yangi usulda Gemini'dan javob so'rash
+        response = client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=user_text,
+        )
         await update.message.reply_text(response.text)
     except Exception as e:
         xato_matni = f"GEMINI XATOSI: {str(e)}"

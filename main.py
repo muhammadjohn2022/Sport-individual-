@@ -6,13 +6,11 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
 from google import genai
 
-# Kalitlarni Render sozlamalaridan xavfsiz olish
+# Kalitlarni Render'dan xavfsiz olish
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 
-# Gemini-ni yangi model bilan sozlash (2026-yil standarti)
 client = genai.Client(api_key=GEMINI_API_KEY)
-
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 app = Flask('')
@@ -26,7 +24,7 @@ def run_flask():
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     try:
-        # 404 xatosini oldini olish uchun eng yangi modelni tanlaymiz
+        # 2026-yil uchun barqaror model
         response = client.models.generate_content(
             model='gemini-2.0-flash', 
             contents=user_text,
@@ -37,9 +35,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 if __name__ == '__main__':
     threading.Thread(target=run_flask, daemon=True).start()
-    
-    # Konflikt xatosini tozalash (drop_pending_updates)
     application = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     
+    # drop_pending_updates=True konfliktlarni va tiqilib qolgan eski xabarlarni tozalaydi
     application.run_polling(drop_pending_updates=True)

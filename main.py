@@ -4,7 +4,7 @@ import os
 from flask import Flask
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
-from google import genai  # YANGI KUTUBXONA
+from google import genai  
 
 # Kalitlar
 TELEGRAM_TOKEN = '8672369792:AAFO80iJTSZZBBinKIoy0E-Ll4_A-vDn6I4'
@@ -31,9 +31,9 @@ def run_flask():
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
     try:
-        # Yangi usulda Gemini'dan javob so'rash
+        # MUHIM O'ZGARISH: Eskirgan 1.5 o'rniga eng yangi 2.5 modeli o'rnatildi!
         response = client.models.generate_content(
-            model='gemini-1.5-flash',
+            model='gemini-2.5-flash',
             contents=user_text,
         )
         await update.message.reply_text(response.text)

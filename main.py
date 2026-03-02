@@ -12,7 +12,8 @@ GEMINI_API_KEY = 'AIzaSyCYgatMgekG4EQdtpbeBvq2TiF-_7EUb7c'
 
 # Gemini sozlash
 genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+# MUHIM O'ZGARISH: Model nomi 'gemini-pro' ga o'zgartirildi
+model = genai.GenerativeModel('gemini-pro') 
 
 # Loglarni aniq chiqarish uchun sozlama
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -35,7 +36,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response = model.generate_content(user_text)
         await update.message.reply_text(response.text)
     except Exception as e:
-        # XATONI TO'G'RIDAN-TO'G'RI TELEGRAMGA YUBORAMIZ!
         xato_matni = f"GEMINI XATOSI: {str(e)}"
         await update.message.reply_text(xato_matni)
         logging.error(xato_matni)
